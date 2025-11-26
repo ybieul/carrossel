@@ -1,0 +1,11 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom scrollbar & hyphenation (preserved) */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: #0c0a09; }
+::-webkit-scrollbar-thumb { background: #44403c; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #d97706; }
+
+.hyphens-auto { hyphens: auto; }
