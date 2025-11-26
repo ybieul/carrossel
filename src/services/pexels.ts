@@ -42,10 +42,16 @@ export interface NormalizedPhoto {
 }
 
 const getKey = () => {
-  const raw = (import.meta as any)?.env?.VITE_PEXELS_KEY
-  const key = typeof raw === 'string' ? raw.trim() : ''
+  // 1) Vite .env
+  const rawEnv = (import.meta as any)?.env?.VITE_PEXELS_KEY
+  const envKey = typeof rawEnv === 'string' ? rawEnv.trim() : ''
+  // 2) LocalStorage fallback (permite configurar sem rebuild)
+  const lsKey = typeof localStorage !== 'undefined' ? (localStorage.getItem('PEXELS_KEY') || '').trim() : ''
+  // 3) Window global fallback (para injecções manuais)
+  const winKey = typeof window !== 'undefined' ? (window as any).__PEXELS_KEY?.trim?.() || '' : ''
+  const key = envKey || lsKey || winKey
   if (!key) {
-    throw new Error('Missing VITE_PEXELS_KEY: defina em .env (ex: VITE_PEXELS_KEY=seu_token) e reinicie o servidor')
+    throw new Error('Missing VITE_PEXELS_KEY: defina em .env (ex: VITE_PEXELS_KEY=seu_token), ou salve em localStorage (PEXELS_KEY), e reinicie o servidor')
   }
   return key
 }

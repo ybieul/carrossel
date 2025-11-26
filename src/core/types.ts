@@ -21,7 +21,6 @@ export interface NicheConfig {
   promptRole: string
   defaultTheme: Theme
   defaultProfile: Profile
-  imageStyles: Record<string, ImageStyle>
   defaultSlides: Slide[]
 }
 export interface FontPair { name: string; title: string; body: string }

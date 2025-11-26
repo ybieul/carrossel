@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Slide, Theme, Profile, FontPair, Format, Layout } from '../core/types'
 import { searchPhotos } from '../services/pexels'
 import { NICHES, FONT_PAIRS, FORMATS } from '../core/config'
+import { generateSlidesFromTopic } from '../services/gemini'
 
 const STORAGE_KEY = 'niche_carousel_state_v2'
 
@@ -16,7 +17,7 @@ export const useCarouselState = () => {
   const [slides, setSlides] = useState<Slide[]>(() => currentNicheData.defaultSlides.map(s => ({ ...s, id: s.id || generateId() })))
   const [theme, setTheme] = useState<Theme>(currentNicheData.defaultTheme)
   const [profile, setProfile] = useState<Profile>(currentNicheData.defaultProfile)
-  const [activeImageStyle, setActiveImageStyle] = useState<string>(Object.keys(currentNicheData.imageStyles)[0])
+  // Removido activeImageStyle (era usado para Pollinations)
   const [activeSlideIndex, setActiveSlideIndex] = useState(0)
   const [viewMode, setViewMode] = useState<'edit'|'grid'>('edit')
   const [activeTab, setActiveTab] = useState<'design'|'profile'|'content'>('design')
@@ -47,10 +48,10 @@ export const useCarouselState = () => {
   // Histórico (undo/redo)
   const pastRef = useRef<any[]>([])
   const futureRef = useRef<any[]>([])
-  const snapshotState = () => ({ slides, theme, profile, activeImageStyle, activeFormat, activeFontPair, activeLayout, fontScales, activeSlideIndex, activeNiche })
+  const snapshotState = () => ({ slides, theme, profile, activeFormat, activeFontPair, activeLayout, fontScales, activeSlideIndex, activeNiche })
   const commitHistory = (prev:any) => { pastRef.current.push(prev); futureRef.current = [] }
   function Object_assignState(obj:any){
-    setSlides(obj.slides); setTheme(obj.theme); setProfile(obj.profile); setActiveImageStyle(obj.activeImageStyle); setActiveFormat(obj.activeFormat); setActiveFontPair(obj.activeFontPair); setActiveLayout(obj.activeLayout); setFontScales(obj.fontScales); setActiveSlideIndex(obj.activeSlideIndex); setActiveNiche(obj.activeNiche)
+  setSlides(obj.slides); setTheme(obj.theme); setProfile(obj.profile); setActiveFormat(obj.activeFormat); setActiveFontPair(obj.activeFontPair); setActiveLayout(obj.activeLayout); setFontScales(obj.fontScales); setActiveSlideIndex(obj.activeSlideIndex); setActiveNiche(obj.activeNiche)
   }
   const undo = () => { const past = pastRef.current; if (!past.length) return; const last = past.pop(); futureRef.current.push(snapshotState()); Object_assignState(last) }
   const redo = () => { const future = futureRef.current; if (!future.length) return; const next = future.pop(); pastRef.current.push(snapshotState()); Object_assignState(next) }
@@ -65,7 +66,7 @@ export const useCarouselState = () => {
       if (saved.theme) setTheme(saved.theme)
       if (saved.profile) setProfile(saved.profile)
       if (saved.slides?.length) setSlides(saved.slides)
-      if (saved.activeImageStyle) setActiveImageStyle(saved.activeImageStyle)
+      
       if (saved.activeFormat) setActiveFormat(saved.activeFormat)
       if (saved.activeFontPair) setActiveFontPair(saved.activeFontPair)
       if (saved.activeLayout) setActiveLayout(saved.activeLayout)
@@ -78,7 +79,7 @@ export const useCarouselState = () => {
   useEffect(() => {
     const toSave = { ...snapshotState(), savedThemes, originalTheme: originalThemeRef.current }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave))
-  }, [slides, theme, profile, activeImageStyle, activeFormat, activeFontPair, activeLayout, fontScales, activeSlideIndex, activeNiche, savedThemes])
+  }, [slides, theme, profile, activeFormat, activeFontPair, activeLayout, fontScales, activeSlideIndex, activeNiche, savedThemes])
 
   // Niche change
   const handleNicheChange = (nicheId: 'barber'|'agro') => {
@@ -89,7 +90,7 @@ export const useCarouselState = () => {
     originalThemeRef.current = data.defaultTheme
     setSlides(data.defaultSlides.map(s=>({...s, id: s.id || generateId()})))
     setProfile(data.defaultProfile)
-    setActiveImageStyle(Object.keys(data.imageStyles)[0])
+    
     setActiveSlideIndex(0)
   }
 
@@ -99,29 +100,52 @@ export const useCarouselState = () => {
   const moveSlide = (from:number,to:number) => { if (to<0||to>=slides.length) return; const prev=snapshotState(); commitHistory(prev); const ns=[...slides]; const [it]=ns.splice(from,1); ns.splice(to,0,it); setSlides(ns); setActiveSlideIndex(to) }
   const removeSlide = (index:number) => { if (slides.length<=1) return; const prev=snapshotState(); commitHistory(prev); const ns=slides.filter((_,i)=>i!==index); setSlides(ns); if (activeSlideIndex>=ns.length) setActiveSlideIndex(ns.length-1) }
 
-  // Simulated generation
+  const [aiError, setAiError] = useState<string|undefined>(undefined)
+
+  // Geração usando Gemini com fallback local
   const generateCarousel = async () => {
-    if (!topic.trim()) return
+    const rawTopic = topic.trim()
+    if (!rawTopic) return
     setIsGenerating(true)
-    setTimeout(()=>{
+    setAiError(undefined)
+    try {
+      const result = await generateSlidesFromTopic(activeNiche, rawTopic)
+      const genSlides: Slide[] = result.slides.map(s => ({
+        id: generateId(),
+        type: s.type === 'cover' && result.slides.indexOf(s)!==0 ? 'content' : s.type,
+        title: sanitizeText(s.title),
+        subtitle: s.subtitle ? sanitizeText(s.subtitle) : '',
+        content: sanitizeText(s.content),
+        imageKeyword: s.imageKeyword || (activeNiche==='agro'?'farm':'barbershop')
+      }))
+      if (genSlides.length) {
+        setSlides(genSlides)
+        setActiveSlideIndex(0)
+      } else {
+        throw new Error('Resposta vazia da IA')
+      }
+    } catch (e:any) {
+      // Fallback simulada
+      setAiError(e?.message || 'Falha na geração via IA, usando fallback local.')
       if(activeNiche==='agro') {
         setSlides([
-          { id: generateId(), type:'cover', title: sanitizeText(topic) || 'Tecnologia no Campo', subtitle:'Agricultura 4.0', imageKeyword:'smart farming', content:'O futuro da produtividade rural.'},
+          { id: generateId(), type:'cover', title: sanitizeText(rawTopic) || 'Tecnologia no Campo', subtitle:'Agricultura 4.0', imageKeyword:'smart farming', content:'O futuro da produtividade rural.'},
           { id: generateId(), type:'content', title:'Drones', content:'Monitoramento aéreo detecta pragas cedo.', imageKeyword:'agriculture drone'},
           { id: generateId(), type:'content', title:'GPS Agrícola', content:'Precisão economiza sementes e combustível.', imageKeyword:'tractor gps'},
           { id: generateId(), type:'cta', title:'Modernize', content:'Conheça soluções tecnológicas.', imageKeyword:'digital farm'}
         ])
       } else {
         setSlides([
-          { id: generateId(), type:'cover', title: sanitizeText(topic) || 'Corte Clássico', subtitle:'Elegância Atemporal', imageKeyword:'classic haircut', content:'Descubra por que os clássicos não morrem.'},
+          { id: generateId(), type:'cover', title: sanitizeText(rawTopic) || 'Corte Clássico', subtitle:'Elegância Atemporal', imageKeyword:'classic haircut', content:'Descubra por que os clássicos não morrem.'},
           { id: generateId(), type:'content', title:'Tesoura', content:'Corte na tesoura = caimento natural.', imageKeyword:'scissors hair'},
           { id: generateId(), type:'content', title:'Pomada ou Gel?', content:'Pomada efeito seco, gel efeito molhado.', imageKeyword:'hair pomade'},
           { id: generateId(), type:'cta', title:'Agende', content:'Garanta seu horário hoje.', imageKeyword:'barber pole'}
         ])
       }
       setActiveSlideIndex(0)
+    } finally {
       setIsGenerating(false)
-    }, 1000)
+    }
   }
 
   // Funções de tema
@@ -183,13 +207,14 @@ export const useCarouselState = () => {
 
   return {
     // dados
-    activeNiche, currentNicheData, slides, theme, profile, activeImageStyle, activeSlideIndex,
+  activeNiche, currentNicheData, slides, theme, profile, activeSlideIndex,
     viewMode, activeTab, topic, isGenerating, isExporting, dragedIndex, activeFormat, activeFontPair, activeLayout, fontScales,
   exportProgress, exportTotal, exportScale, exportTransparent,
   mediaQuery, mediaLoading, mediaError, mediaResults,
+  aiError,
   savedThemes,
     // setters
-    setTheme, setProfile, setActiveImageStyle, setActiveSlideIndex, setViewMode, setActiveTab, setTopic, setIsGenerating, setIsExporting,
+  setTheme, setProfile, setActiveSlideIndex, setViewMode, setActiveTab, setTopic, setIsGenerating, setIsExporting,
   setDragedIndex, setActiveFormat, setActiveFontPair, setActiveLayout, setFontScales, setExportProgress, setExportTotal, setExportScale, setExportTransparent,
   setMediaQuery,
     // operações

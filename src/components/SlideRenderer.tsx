@@ -10,7 +10,6 @@ interface SlideRendererProps {
   index: number
   activeNiche: 'barber'|'agro'
   activeLayout: string
-  activeImageStyle: string
   activeFontPair: string
   activeFormat: string
   fontScales: { title: number; subtitle: number; body: number }
@@ -33,7 +32,7 @@ const getResponsiveFontSize = (text:string|undefined, type:string, canvasWidth:n
 }
 
 export const SlideRenderer: React.FC<SlideRendererProps> = ({
-  slide, index, activeNiche, activeLayout, activeImageStyle, activeFontPair, activeFormat,
+  slide, index, activeNiche, activeLayout, activeFontPair, activeFormat,
   fontScales, slidesLength, theme, profile, preview=false, scale=1
 }) => {
   const fmt: Format = FORMATS[activeFormat]
@@ -49,9 +48,9 @@ export const SlideRenderer: React.FC<SlideRendererProps> = ({
           <div className="mb-8 relative rounded-sm overflow-hidden shadow-lg flex-shrink-0 border border-current/10 group" style={{ height: isCover?'35%':'25%' }}>
             {(() => {
               const custom = (slide as any).customImageUrl as string | undefined
-              const url = custom || `https://image.pollinations.ai/prompt/${slide.imageKeyword}%20${currentNicheData.imageStyles[activeImageStyle].prompt}?width=800&height=600&nologo=true`
               const alt = (slide as any).customImageAlt || slide.imageKeyword
-              return <img src={url} alt={alt} onError={(e)=>{(e.currentTarget as HTMLImageElement).style.display='none'}} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" crossOrigin="anonymous" />
+              if (!custom) return null
+              return <img src={custom} alt={alt} onError={(e)=>{(e.currentTarget as HTMLImageElement).style.display='none'}} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" crossOrigin="anonymous" />
             })()}
           </div>
         )}
@@ -74,9 +73,9 @@ export const SlideRenderer: React.FC<SlideRendererProps> = ({
         <div className="absolute inset-0 z-0">
           {(() => {
             const custom = (slide as any).customImageUrl as string | undefined
-            const url = custom || `https://image.pollinations.ai/prompt/${slide.imageKeyword}%20${currentNicheData.imageStyles[activeImageStyle].prompt}?width=1080&height=1350&nologo=true`
             const alt = (slide as any).customImageAlt || slide.imageKeyword
-            return <img src={url} alt={alt} onError={(e)=>{(e.currentTarget as HTMLImageElement).style.display='none'}} className="w-full h-full object-cover" crossOrigin="anonymous" />
+            if (!custom) return null
+            return <img src={custom} alt={alt} onError={(e)=>{(e.currentTarget as HTMLImageElement).style.display='none'}} className="w-full h-full object-cover" crossOrigin="anonymous" />
           })()}
           <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-black/10" />
         </div>
@@ -102,9 +101,9 @@ export const SlideRenderer: React.FC<SlideRendererProps> = ({
           <div className="w-full h-40 rounded-sm overflow-hidden mb-6 shadow-md object-cover flex-shrink-0 border border-current/10">
             {(() => {
               const custom = (slide as any).customImageUrl as string | undefined
-              const url = custom || `https://image.pollinations.ai/prompt/${slide.imageKeyword}%20${currentNicheData.imageStyles[activeImageStyle].prompt}?width=800&height=400&nologo=true`
               const alt = (slide as any).customImageAlt || slide.imageKeyword
-              return <img src={url} alt={alt} onError={e=>{(e.currentTarget as HTMLImageElement).style.display='none'}} className="w-full h-full object-cover" crossOrigin="anonymous" />
+              if (!custom) return null
+              return <img src={custom} alt={alt} onError={e=>{(e.currentTarget as HTMLImageElement).style.display='none'}} className="w-full h-full object-cover" crossOrigin="anonymous" />
             })()}
           </div>
         )}

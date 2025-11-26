@@ -14,13 +14,7 @@ export const NICHES: Record<string, NicheConfig> = {
 		promptRole: 'Atue como Barbeiro Profissional e Especialista em Estilo Masculino.',
 		defaultTheme: { primary: '#D4AF37', secondary: '#FFFFFF', background: '#1c1917', text: '#e7e5e4', accent: '#ef4444' },
 		defaultProfile: { name: '@BarberKing', handle: 'Cortes Clássicos', show: true },
-		imageStyles: {
-			vintage: { name: 'Vintage / Old School', prompt: 'vintage barbershop interior, leather chairs, classic tools, warm retro lighting, 1950s aesthetic' },
-			modern: { name: 'Modern Studio', prompt: 'modern minimalist hair studio, bright clinical lighting, sharp focus, professional barber tools' },
-			dark_luxury: { name: 'Dark Luxury', prompt: 'luxury barbershop, dark moody lighting, gold accents, black marble, cinematic, masculine aesthetic' },
-			macro_hair: { name: 'Detalhe (Macro)', prompt: 'extreme close up of a haircut fade, sharp lines, hair texture, professional photography' },
-			neon: { name: 'Neon Street', prompt: 'barbershop window at night, neon barber pole, rainy street, cinematic, cyberpunk vibes' }
-		},
+		// imageStyles removed as they are no longer used
 		defaultSlides: [
 			{ id: '1', type: 'cover', title: 'Estilo & Corte', subtitle: 'Tendências 2025', imageKeyword: 'haircut fade', content: 'O guia definitivo para o homem moderno.' },
 			{ id: '2', type: 'content', title: 'Textura', content: 'Aposte em finalizadores mate para um visual natural e duradouro.', imageKeyword: 'hair product' },
@@ -38,13 +32,7 @@ export const NICHES: Record<string, NicheConfig> = {
 		promptRole: 'Atue como Engenheiro Agrônomo e Especialista em Pecuária de Precisão. Use termos técnicos do setor.',
 		defaultTheme: { primary: '#059669', secondary: '#1c1917', background: '#f5f5f4', text: '#292524', accent: '#d97706' },
 		defaultProfile: { name: '@AgroTech', handle: 'Soluções Rurais', show: true },
-		imageStyles: {
-			field_realistic: { name: 'Campo Realista', prompt: 'wide angle shot of a green pasture, blue sky, sunny day, high resolution, national geographic style' },
-			drone: { name: 'Vista Aérea (Drone)', prompt: 'aerial drone shot of farmland, geometric crop patterns, cinematic lighting, 4k' },
-			cattle_portrait: { name: 'Retrato Animal', prompt: 'close up portrait of a prize bull, detailed fur, soft natural lighting, blurred background, professional photography' },
-			tech_agro: { name: 'Agro Tech', prompt: 'futuristic smart farm, drones spraying crops, digital data overlay, interface, technology in agriculture' },
-			sunset: { name: 'Pôr do Sol Rural', prompt: 'golden hour over a wheat field, warm lighting, silhouette of a tractor, emotional, cinematic' }
-		},
+		// imageStyles removed as they are no longer used
 		defaultSlides: [
 			{ id: '1', type: 'cover', title: 'Manejo Eficiente', subtitle: 'Lucratividade no Pasto', imageKeyword: 'cattle grazing', content: 'Como aumentar a arroba sem aumentar o custo.' },
 			{ id: '2', type: 'content', title: 'Nutrição', content: 'O sal mineral é o investimento de menor custo e maior retorno na seca.', imageKeyword: 'cattle eating' },

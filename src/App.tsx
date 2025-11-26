@@ -25,15 +25,16 @@ const waitForImagesInElement = (el: HTMLElement|null) => {
 const App: React.FC = () => {
   const state = useCarouselState()
   const {
-    activeNiche, currentNicheData, slides, theme, profile, activeImageStyle, activeSlideIndex,
+  activeNiche, currentNicheData, slides, theme, profile, activeSlideIndex,
     viewMode, activeTab, topic, isGenerating, isExporting, dragedIndex, activeFormat, activeFontPair, activeLayout, fontScales,
     exportProgress, exportTotal, exportScale, exportTransparent,
     setExportProgress, setExportTotal, setExportScale, setExportTransparent,
     setActiveSlideIndex, setViewMode, setActiveTab, setTopic, setIsExporting, setDragedIndex,
     handleNicheChange, addSlide, duplicateSlide, moveSlide, removeSlide, generateCarousel,
-    undo, redo, sanitizeText, clamp, setTheme, setProfile, setActiveImageStyle, setActiveLayout, setSlides,
+  undo, redo, sanitizeText, clamp, setTheme, setProfile, setActiveLayout, setSlides,
     // mídia Pexels
-    mediaQuery, mediaLoading, mediaError, mediaResults, setMediaQuery, fetchMedia, applyPhotoToSlide, clearCustomMedia
+    mediaQuery, mediaLoading, mediaError, mediaResults, setMediaQuery, fetchMedia, applyPhotoToSlide, clearCustomMedia,
+    aiError
   } = state
 
   // Exportação consolidada usando estado do hook
@@ -116,8 +117,8 @@ const App: React.FC = () => {
           setActiveTab={setActiveTab}
           activeLayout={activeLayout}
           setActiveLayout={setActiveLayout}
-          activeImageStyle={activeImageStyle}
-          setActiveImageStyle={setActiveImageStyle}
+          
+          
           theme={theme}
           setTheme={setTheme}
           profile={profile}
@@ -145,6 +146,7 @@ const App: React.FC = () => {
           fetchMedia={fetchMedia}
           applyPhotoToSlide={applyPhotoToSlide}
           clearCustomMedia={clearCustomMedia}
+          aiError={aiError}
         />
         <main className="flex-1 bg-gradient-to-br from-stone-900 to-stone-950 overflow-hidden relative flex flex-col items-center justify-center p-8">
           <div className="absolute top-4 flex gap-2 bg-stone-950/80 backdrop-blur p-1 rounded-full shadow border border-stone-800 z-30">
@@ -183,7 +185,7 @@ const App: React.FC = () => {
                   index={activeSlideIndex}
                   activeNiche={activeNiche}
                   activeLayout={activeLayout}
-                  activeImageStyle={activeImageStyle}
+                  
                   activeFontPair={activeFontPair}
                   activeFormat={activeFormat}
                   fontScales={fontScales}
@@ -216,7 +218,7 @@ const App: React.FC = () => {
                         index={i}
                         activeNiche={activeNiche}
                         activeLayout={activeLayout}
-                        activeImageStyle={activeImageStyle}
+                        
                         activeFontPair={activeFontPair}
                         activeFormat={activeFormat}
                         fontScales={fontScales}

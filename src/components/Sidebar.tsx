@@ -1,6 +1,7 @@
 import React from 'react'
 import { NICHES, LAYOUT_STYLES } from '../core/config'
 import { ImageIcon, LayoutIcon, Palette, Sparkles, Plus, Trash2, RefreshCw } from '../icons'
+import { listKnowledgeSources } from '../services/knowledge'
 import { Slide, ImageStyle, Theme } from '../core/types'
 
 interface SidebarProps {
@@ -10,8 +11,6 @@ interface SidebarProps {
   setActiveTab: (t:'design'|'profile'|'content')=>void
   activeLayout: string
   setActiveLayout: (l:any)=>void
-  activeImageStyle: string
-  setActiveImageStyle: (v:string)=>void
   theme: Theme
   setTheme: (t:any)=>void
   profile: { name:string; handle:string; show:boolean; avatar?:string }
@@ -45,16 +44,21 @@ interface SidebarProps {
   fetchMedia?: (query?:string)=>void
   applyPhotoToSlide?: (photo:{ original:string; alt?:string })=>void
   clearCustomMedia?: (index?:number)=>void
+  aiError?: string
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
   activeNiche, currentNicheData, activeTab, setActiveTab, activeLayout, setActiveLayout,
-  activeImageStyle, setActiveImageStyle, theme, setTheme, profile, setProfile,
+  theme, setTheme, profile, setProfile,
   topic, setTopic, generateCarousel, isGenerating, slides, activeSlideIndex,
   setActiveSlideIndex, setSlides, moveSlide, duplicateSlide, removeSlide, addSlide, sanitizeText, clamp,
   savedThemes = [], duplicateTheme, resetThemeDefault, resetThemeOriginal, applySavedTheme, removeSavedTheme,
   mediaQuery = '', setMediaQuery, mediaLoading = false, mediaError, mediaResults = [], fetchMedia, applyPhotoToSlide, clearCustomMedia
+  , aiError
 }) => {
+  const [sources, setSources] = React.useState<{id:string;name:string}[]>([])
+  const [selectedSources, setSelectedSources] = React.useState<string[]>([])
+  React.useEffect(()=>{ listKnowledgeSources().then(setSources).catch(()=> setSources([])) },[])
   return (
     <aside className="w-80 bg-stone-950 border-r border-stone-800 overflow-y-auto flex flex-col z-20 shadow-lg">
       <div className="p-4 border-b border-stone-800">
@@ -98,10 +102,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </div>
             </div>
             <div className="space-y-3">
-              <h3 className="text-xs font-bold text-stone-500 uppercase tracking-wider flex items-center gap-2"><ImageIcon size={14}/> Estilo de Imagem</h3>
-              <select aria-label="Estilo de Imagem" title="Estilo de Imagem" value={activeImageStyle} onChange={e=>setActiveImageStyle(e.target.value)} className="w-full p-2 text-sm bg-stone-900 border border-stone-800 rounded-sm text-stone-200 focus:border-current outline-none focus-visible:ring-2 focus-visible:ring-amber-500">
-                {Object.entries(currentNicheData.imageStyles as Record<string, ImageStyle>).map(([k,v])=> <option key={k} value={k}>{v.name}</option>)}
-              </select>
+              <h3 className="text-xs font-bold text-stone-500 uppercase tracking-wider flex items-center gap-2"><ImageIcon size={14}/> Fonte de Conhecimento</h3>
+              <div className="space-y-2">
+                <div className="text-[11px] text-stone-500">Selecione 1 ou mais arquivos base (.md) para guiar a IA:</div>
+                <div className="flex flex-col gap-2">
+                  {sources.length===0 && <div className="text-xs text-stone-500">Nenhum arquivo encontrado em <code>src/knowledge</code>.</div>}
+                  {sources.map(s => (
+                    <label key={s.id} className="flex items-center gap-2 text-xs">
+                      <input type="checkbox" checked={selectedSources.includes(s.id)} onChange={e=>{
+                        setSelectedSources(prev=> e.target.checked? [...prev, s.id]: prev.filter(x=>x!==s.id))
+                        localStorage.setItem('KB_SELECTED', JSON.stringify(e.target.checked? [...selectedSources, s.id]: selectedSources.filter(x=>x!==s.id)))
+                      }} />
+                      <span className="truncate">{s.name}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
             </div>
             <div className="space-y-3">
               <h3 className="text-xs font-bold text-stone-500 uppercase tracking-wider flex items-center gap-2"><Palette size={14}/> Cores</h3>
@@ -189,6 +205,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <input value={topic} onChange={e=> setTopic(e.target.value)} onKeyDown={e=> e.key==='Enter' && generateCarousel()} placeholder={activeNiche==='agro'? 'Ex: Plantio de Soja...':'Ex: Corte Degradê...'} className="w-full pl-3 pr-10 py-2 bg-stone-950 border border-stone-700 rounded-sm text-sm focus:border-current text-white outline-none" />
                 <button onClick={generateCarousel} disabled={isGenerating} className={`absolute right-1.5 top-1.5 p-1 ${currentNicheData.bgColor} text-white rounded-sm hover:opacity-90 disabled:opacity-50`}>{isGenerating? <RefreshCw className="animate-spin" size={14}/> : <Sparkles size={14} />}</button>
               </div>
+                {aiError && <p className="mt-2 text-[11px] text-red-400">{aiError}</p>}
             </div>
             <div className="space-y-4 pt-4 border-t border-stone-800">
               <div className="flex justify-between items-center">
