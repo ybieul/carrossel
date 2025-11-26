@@ -14,18 +14,25 @@ export interface KnowledgeSelection {
 
 // Listar arquivos em src/knowledge via Vite glob (modo raw)
 // Nota: 'as: "raw"' foi deprecado. Usamos query: '?raw' + import: 'default'.
-// Importante: use caminhos a partir da raiz do projeto e cubra pasta raiz e subpastas.
-// Suporta nomes com espaços e acentos.
-const files = import.meta.glob([
-  '/src/knowledge/*.md?raw',
-  '/src/knowledge/**/*.md?raw'
-], { import: 'default' }) as Record<string, () => Promise<string>>
+// Para máxima compatibilidade em dev/build, combinamos múltiplos padrões relativos e absolutos.
+// Vite 5 aceita múltiplos globs individuais; aqui mesclamos manualmente em um único mapa.
+// Use a sintaxe com option 'query: "?raw"' em vez de embutir na pattern, para compatibilidade com Vite 5.
+const filesRoot = import.meta.glob('/src/knowledge/*.md', { query: '?raw', import: 'default' }) as Record<string, () => Promise<string>>
+const filesRootDeep = import.meta.glob('/src/knowledge/**/*.md', { query: '?raw', import: 'default' }) as Record<string, () => Promise<string>>
+const filesRel = import.meta.glob('../knowledge/*.md', { query: '?raw', import: 'default' }) as Record<string, () => Promise<string>>
+const filesRelDeep = import.meta.glob('../knowledge/**/*.md', { query: '?raw', import: 'default' }) as Record<string, () => Promise<string>>
+const files = { ...filesRoot, ...filesRootDeep, ...filesRel, ...filesRelDeep } as Record<string, () => Promise<string>>
 
 export async function listKnowledgeSources(): Promise<{ id:string; name:string }[]> {
   return Object.keys(files).map((path) => {
     const name = path.split('/').pop() || path
     return { id: path, name }
   })
+}
+
+// Debug: obter os paths detectados pelo glob
+export function getKnowledgeDebugPaths(): string[] {
+  return Object.keys(files)
 }
 
 export async function loadSources(sourceIds: string[]): Promise<Record<string, string>> {

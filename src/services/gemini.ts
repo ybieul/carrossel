@@ -16,7 +16,6 @@ export interface GeminiResult {
 }
 
 const PRIMARY_MODEL = 'gemini-2.5-flash-preview-09-2025'
-const FALLBACK_MODEL = 'gemini-1.5-flash'
 
 function getApiKey(): string {
   const envKey = (import.meta as any)?.env?.VITE_GEMINI_KEY?.trim?.() || ''
@@ -128,13 +127,7 @@ export async function generateSlidesFromTopic(niche: string, topic: string): Pro
   if (!key) throw new Error('Missing VITE_GEMINI_KEY (defina em .env ou localStorage GEMINI_KEY)')
 
   const prompt = await buildPrompt(niche, topic)
-  let data: any
-  try {
-    data = await callModel(PRIMARY_MODEL, prompt, key)
-  } catch (ePrimary) {
-    // tenta fallback de modelo
-    data = await callModel(FALLBACK_MODEL, prompt, key)
-  }
+  const data = await callModel(PRIMARY_MODEL, prompt, key)
   // Debug não invasivo
   if (typeof window !== 'undefined') {
     ;(window as any).__lastGeminiRaw = data

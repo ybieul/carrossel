@@ -1,7 +1,7 @@
 import React from 'react'
 import { NICHES, LAYOUT_STYLES } from '../core/config'
 import { ImageIcon, LayoutIcon, Palette, Sparkles, Plus, Trash2, RefreshCw } from '../icons'
-import { listKnowledgeSources } from '../services/knowledge'
+import { listKnowledgeSources, getKnowledgeDebugPaths } from '../services/knowledge'
 import { Slide, ImageStyle, Theme } from '../core/types'
 
 interface SidebarProps {
@@ -58,7 +58,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const [sources, setSources] = React.useState<{id:string;name:string}[]>([])
   const [selectedSources, setSelectedSources] = React.useState<string[]>([])
-  React.useEffect(()=>{ listKnowledgeSources().then(setSources).catch(()=> setSources([])) },[])
+  const [kbDebugPaths, setKbDebugPaths] = React.useState<string[]>([])
+  React.useEffect(()=>{
+    listKnowledgeSources().then(setSources).catch(()=> setSources([]))
+    try { setKbDebugPaths(getKnowledgeDebugPaths()) } catch { setKbDebugPaths([]) }
+  },[])
   return (
     <aside className="w-80 bg-stone-950 border-r border-stone-800 overflow-y-auto flex flex-col z-20 shadow-lg">
       <div className="p-4 border-b border-stone-800">
@@ -117,6 +121,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     </label>
                   ))}
                 </div>
+                  {/* Painel de debug: mostrar paths detectados */}
+                  <div className="mt-2 p-2 bg-stone-900 border border-stone-800 rounded">
+                    <div className="text-[10px] font-bold text-stone-500 uppercase tracking-wider">Debug Fonte</div>
+                    <div className="text-[11px] text-stone-400">Arquivos detectados: {kbDebugPaths.length}</div>
+                    {!!kbDebugPaths.length && (
+                      <ul className="mt-1 space-y-1 max-h-24 overflow-auto">
+                        {kbDebugPaths.map(p=> <li key={p} className="text-[11px] text-stone-500 truncate"><code>{p}</code></li>)}
+                      </ul>
+                    )}
+                  </div>
               </div>
             </div>
             <div className="space-y-3">
